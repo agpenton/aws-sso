@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"runtime/debug"
 
 	"github.com/spf13/cobra"
 )
@@ -15,21 +14,21 @@ import (
 func check(e error) {
 	if e != nil {
 		log.Println(e)
-		debug.PrintStack()
+		//debug.PrintStack()
 	}
 }
 
 func checkPanic(e error) {
 	if e != nil {
 		panic(e)
-		debug.PrintStack()
+		//debug.PrintStack()
 	}
 }
 
 func checkFatal(e error) {
 	if e != nil {
 		log.Fatal(e)
-		debug.PrintStack()
+		//debug.PrintStack()
 	}
 }
 
@@ -52,11 +51,11 @@ func currentDir() string {
 	return path
 }
 
-func exitErr(e error)  {
-  if e !=nil {
-    log.Println(e)
-    os.Exit(1)
-  }
+func exitErr(e error) {
+	if e != nil {
+		log.Println(e)
+		os.Exit(1)
+	}
 }
 
 var homeDir, _ = os.UserHomeDir()
@@ -87,7 +86,7 @@ func Execute() {
 	// if err != nil {
 	// 	os.Exit(1)
 	// }
-  exitErr(err)
+	exitErr(err)
 }
 
 func init() {
