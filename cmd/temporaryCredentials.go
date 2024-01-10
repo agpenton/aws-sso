@@ -12,6 +12,8 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/briandowns/spinner"
+	"github.com/julienroland/usg"
 	"github.com/pelletier/go-toml"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -23,25 +25,38 @@ var temporaryCredentialsCmd = &cobra.Command{
 	Short: "This is a command to create or modify the credentials created.",
 	Long:  `This is a command to create or modify the credentials in the config file.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		s := spinner.New(spinner.CharSets[11], 100*time.Millisecond) // Build our new spinner
+		s.Suffix = "   Processing data...  \n"
+		s.Start()
 		accessTempKey, secretTempkey, tempToken, nil := CreateSession(profile)
 		_, err = os.Stat(credentialsPath)
 		if err != nil {
-			println("os.Stat(): error file name ", credentialsPath)
-			println("and error is: ", err.Error())
+
+			//if os.IsNotExist(err) {
 			if os.IsNotExist(err) {
+				s.Suffix = "  Login to Profile ...  \n"
+				ssoLogin(profile)
+				log.Println(usg.Get.Tick, "Success")
 				credentialsFileCreation(profile, accessTempKey, secretTempkey, tempToken)
+
 			}
 		} else {
 			if timeValidator().Before(time.Now().Local()) {
-				log.Println("The credentials are Expired")
+				//log.Println("The credentials are Expired")
 				e := os.Remove(credentialsPath)
 				if e != nil {
 					log.Fatal(e)
 				}
+				s.Suffix = "  Login to Profile.. \n"
 				ssoLogin(profile)
+				log.Println(usg.Get.Tick, "Success")
+				s.Suffix = "  Updating Credentials.. \n"
 				UpdateCredentials(profile, accessTempKey, secretTempkey, tempToken)
+				log.Println(usg.Get.Tick, "Done")
 			} else {
+				s.Suffix = "  Updating Credentials.. \n"
 				UpdateCredentials(profile, accessTempKey, secretTempkey, tempToken)
+				log.Println(usg.Get.Tick, "Done")
 			}
 		}
 	},
@@ -96,14 +111,14 @@ func CreateSession(profile string) (string, string, string, error) {
 
 // UpdateRegistryConfig - updates registry settings in the config file
 func UpdateCredentials(credentialsPath, accessTempKey string, secretTempkey string, tempToken string) error {
-	log.Debugf("UpdateCredentials hit, credential file: %s", credentialsPath)
+	log.Debugf(usg.Get.ExclamationMark, "UpdateCredentials hit, credential file: %s", credentialsPath)
 	if _, err := os.Stat(credentialsPath); os.IsNotExist(err) {
-		return fmt.Errorf("specified credentials file %s not exists locally, error: %v", credentialsPath, err)
+		return fmt.Errorf(usg.Get.Cross, "specified credentials file %s not exists locally, error: %v", credentialsPath, err)
 	}
 
 	tree, err := getTomlTree(credentialsPath)
 	if err != nil {
-		return fmt.Errorf("failed to load the credentials file as toml tree, error: %v", err)
+		return fmt.Errorf(usg.Get.Cross, "failed to load the credentials file as toml tree, error: %v", err)
 	}
 
 	// auth
@@ -115,7 +130,7 @@ func UpdateCredentials(credentialsPath, accessTempKey string, secretTempkey stri
 		return err
 	}
 
-	log.Debug("credentials settings added successfully")
+	log.Debug(usg.Get.Tick, "credentials settings added successfully")
 	return nil
 }
 
@@ -139,7 +154,7 @@ func AddAnotherConfig(credentialsPath, accessTempKey string, secretTempkey strin
 		return err
 	}
 
-	log.Debug("credentials settings added successfully")
+	log.Debug(usg.Get.Tick, "credentials settings added successfully")
 	return nil
 }
 
@@ -168,7 +183,7 @@ func persistTomlTree(configFile string, tree *toml.Tree) error {
 		return fmt.Errorf("failed to write config to a file, error: %v", err)
 	}
 
-	log.Info("updates written to file successfully")
+	log.Info(usg.Get.Tick, "updates written to file successfully")
 	return nil
 }
 
@@ -211,14 +226,14 @@ func credentialsFileCreation(profile string, accessTempKey string, secretTempkey
 		err = w.Flush()
 		check(err)
 	} else {
-		log.Printf("The file %v already exists!\n", credentialsFile)
-		log.Println("modifying the values")
+		log.Printf(usg.Get.ExclamationMark, "The file %v already exists!\n", credentialsFile)
+		log.Println(usg.Get.ExclamationMark, "modifying the values")
 		ModifyCredentials(profile, accessTempKey, secretTempkey, tempToken)
-		log.Println("done")
+		log.Println(usg.Get.Tick, "done")
 		return
 	}
 
-	log.Println("File created successfully", credentialsPath)
+	log.Println(usg.Get.Tick, "File created successfully", credentialsPath)
 }
 
 // ModifyCredentials to Modify the credentials in the file if they exist.
