@@ -12,6 +12,8 @@ import (
 	"os/exec"
 	"time"
 
+	"github.com/briandowns/spinner"
+	"github.com/julienroland/usg"
 	"github.com/spf13/cobra"
 )
 
@@ -36,17 +38,33 @@ type Config struct {
 var loginCmd = &cobra.Command{
 	Use:   "login",
 	Short: "Login command for the AWS SSO.",
-  Long: `A Login command for the AWS SSO, will`,
+	Long:  `A Login command for the AWS SSO, will`,
 	Run: func(cmd *cobra.Command, args []string) {
+		s := spinner.New(spinner.CharSets[11], 100*time.Millisecond) // Build our new spinner
+		s.Start()
 		if len(os.Args) <= 3 {
-			fmt.Println("Please provide a aws profile")
+			fmt.Println(usg.Get.ExclamationMark, "Please provide a aws profile")
 			return
 		}
 		if timeValidator().Before(time.Now().Local()) {
-			log.Println("The credentials are Expired")
+			s.Suffix = "   Processing data...  \n"
+			log.Println(usg.Get.ExclamationMark, "The credentials are Expired")
+			if _, err := os.Stat(ssoCacheDir); os.IsNotExist(err) {
+				// Directory does not exist, create it
+				err := os.MkdirAll(ssoCacheDir, 0755)
+				if err != nil {
+					fmt.Println("Error creating directory:", err)
+					return
+				}
+				fmt.Println("Directory created successfully!")
+			}
+			s.Suffix = "  Login to Profile...  \n"
 			ssoLogin(profile)
+			log.Println(usg.Get.Tick, "Done")
 		} else {
+			s.Suffix = "  Validate the time of credentials ...  \n"
 			timeValidator().Before(time.Now().Local())
+			log.Println(usg.Get.Tick, "Success")
 		}
 	},
 }
@@ -85,7 +103,7 @@ func ssoLogin(profile string) string {
 	}
 
 	// Print the output
-	log.Println(string(stdout))
+	//log.Println(string(stdout))
 
 	return string(stdout)
 }
@@ -127,7 +145,6 @@ func timeValidator() time.Time {
 		}
 
 	}
-
 
 	return expirationDate.Local()
 }
