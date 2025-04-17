@@ -6,7 +6,6 @@ package cmd
 import (
 	"bufio"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strings"
 	"time"
@@ -159,7 +158,7 @@ func AddAnotherConfig(credentialsPath, accessTempKey string, secretTempkey strin
 }
 
 func getTomlTree(configFile string) (*toml.Tree, error) {
-	bytes, err := ioutil.ReadFile(configFile)
+	bytes, err := os.ReadFile(configFile)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read config file, error: %v", err)
 	}
@@ -179,7 +178,7 @@ func persistTomlTree(configFile string, tree *toml.Tree) error {
 	}
 
 	data := []byte(str)
-	if err := ioutil.WriteFile(configFile, data, 0666); err != nil {
+	if err := os.WriteFile(configFile, data, 0o666); err != nil {
 		return fmt.Errorf("failed to write config to a file, error: %v", err)
 	}
 

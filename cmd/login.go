@@ -6,7 +6,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -134,7 +134,7 @@ func timeValidator() time.Time {
 			defer jsonFile.Close()
 			//log.Println("Successfully Opened ", v.Name())
 
-			byteValue, _ := ioutil.ReadAll(jsonFile)
+			byteValue, _ := io.ReadAll(jsonFile)
 			var config Config
 
 			err = json.Unmarshal(byteValue, &config)

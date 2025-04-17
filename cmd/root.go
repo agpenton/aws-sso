@@ -5,10 +5,10 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/spf13/cobra"
 	"log"
 	"os"
-
-	"github.com/spf13/cobra"
+	"path/filepath"
 )
 
 func check(e error) {
@@ -58,12 +58,20 @@ func exitErr(e error) {
 	}
 }
 
-var homeDir, _ = os.UserHomeDir()
-var awsDir = homeDir + "/.aws/"
-var ssoCacheDir = awsDir + "sso/cache/"
-var pwdDir = currentDir()
-var credentialsFile = "credentials"
-var credentialsPath = awsDir + credentialsFile
+//var homeDir, _ = os.UserHomeDir()
+//var awsDir = homeDir + "/.aws/"
+//var ssoCacheDir = awsDir + "sso/cache/"
+//var pwdDir = currentDir()
+//var credentialsFile = "credentials"
+//var credentialsPath = awsDir + credentialsFile
+
+var (
+	homeDir         = func() string { h, _ := os.UserHomeDir(); return h }()
+	awsDir          = filepath.Join(homeDir, ".aws")
+	ssoCacheDir     = filepath.Join(awsDir, "sso", "cache")
+	credentialsFile = "credentials"
+	credentialsPath = filepath.Join(awsDir, credentialsFile)
+)
 var profile string
 var profiles []string
 var accessTempKey, secretTempkey, tempToken string
